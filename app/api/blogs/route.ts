@@ -1,13 +1,20 @@
 import { PrismaClient } from '@prisma/client';
 import { NextResponse } from 'next/server';
+import jwt from 'jsonwebtoken';
 
 const prisma = new PrismaClient();
 
-// Dummy authentication check (replace with real auth in production)
-function isAuthenticated(request: Request) {
-  // Example: check for a header or cookie
-  // return Boolean(request.headers.get('authorization'));
-  return true;
+function isAuthenticated(request: Request): string | null {
+  const authHeader = request.headers.get('authorization');
+  if (!authHeader) return null;
+  const token = authHeader.replace('Bearer ', '');
+  try {
+    const payload = jwt.verify(token, process.env.JWT_SECRET!);
+    // Optionally check payload for user info/roles
+    return (payload as any).userId;
+  } catch {
+    return null;
+  }
 }
 
 export async function GET(request: Request) {
