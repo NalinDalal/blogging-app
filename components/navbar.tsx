@@ -11,7 +11,6 @@ type SessionUser = {
 
 export default function Navbar() {
   const [user, setUser] = useState<SessionUser | null>(null);
-  const [loadingUser, setLoadingUser] = useState(true);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -25,12 +24,10 @@ export default function Navbar() {
 
         if (!cancelled) {
           setUser(data.user ?? null);
-          setLoadingUser(false);
         }
       } catch {
         if (!cancelled) {
           setUser(null);
-          setLoadingUser(false);
         }
       }
     }
@@ -52,46 +49,20 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="sticky top-0 z-20 w-full border-b border-[var(--border)] bg-white/90 backdrop-blur">
-      <div className="mx-auto flex w-full max-w-4xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-        <Link href="/" className="text-lg font-semibold tracking-tight text-slate-900 sm:text-xl">
-          Nalin Blog
-        </Link>
-        <div className="flex items-center gap-2 sm:gap-3">
-          {loadingUser ? (
-            <span className="rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-500">Loading...</span>
-          ) : !user ? (
+    <nav className="w-full bg-zinc-100 dark:bg-zinc-900 py-4 px-8 flex justify-between items-center mb-8 shadow">
+      <Link href="/" className="text-xl font-bold text-blue-700 dark:text-blue-300">Blogging App</Link>
+      <div className="flex gap-4">
+        {!user ? (
           <>
-            <Link
-              href="/signup"
-              className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
-            >
-              Sign Up
-            </Link>
-            <Link
-              href="/signin"
-              className="rounded-md bg-sky-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-sky-700"
-            >
-              Sign In
-            </Link>
+            <Link href="/signup" className="px-4 py-2 rounded bg-blue-600 text-white">Sign Up</Link>
+            <Link href="/signin" className="px-4 py-2 rounded bg-green-600 text-white">Sign In</Link>
           </>
         ) : (
           <>
-            <Link
-              href="/create"
-              className="rounded-md bg-emerald-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-emerald-700"
-            >
-              New Blog
-            </Link>
-            <button
-              onClick={handleSignout}
-              className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-100"
-            >
-              Sign Out
-            </button>
+            <Link href="/create" className="px-4 py-2 rounded bg-purple-600 text-white">New Blog</Link>
+            <button onClick={handleSignout} className="px-4 py-2 rounded bg-red-600 text-white">Sign Out</button>
           </>
-          )}
-        </div>
+        )}
       </div>
     </nav>
   );

@@ -1,27 +1,11 @@
-Simple blog app where a user can sign up, sign in, and create blog posts with timestamps.
+uhh, we are doing a simple app where user can signup, signin, then create some blog post and post them with time stamp
 
-Local database setup:
-
-```bash
-docker compose up -d db
+docker container for local testing:
 ```
-
-The app expects Postgres on `localhost:5433`, which matches the included `docker-compose.yml` and `.env`.
-
-After the database starts, run the Prisma setup:
-
-```bash
-npx prisma migrate deploy
-```
-
-For local development, if you have not created migrations for your current schema yet, use:
-
-```bash
-npx prisma migrate dev
-```
-
-Then start the app:
-
-```bash
-npm run dev
+docker run --name blogging \
+  -e POSTGRES_USER=blog_user \
+  -e POSTGRES_PASSWORD=blog_password \
+  -e POSTGRES_DB=blog_db \
+  -p 5432:5432 \
+  -d postgres:16
 ```

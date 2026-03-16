@@ -40,32 +40,17 @@ export default function BlogListPage() {
   }, []);
 
   return (
-    <div className="py-8 sm:py-10">
-      <div className="mb-7 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
-        <h2 className="text-2xl font-semibold tracking-tight text-slate-900">Latest Posts</h2>
-        <p className="mt-2 text-sm text-slate-600">Recent writing from the community.</p>
-      </div>
-      {loading && (
-        <p className="rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-600">Loading blogs...</p>
-      )}
-      {error && <p className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{error}</p>}
-      {!loading && !error && blogs.length === 0 && (
-        <p className="rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-600">
-          No blog posts yet. Be the first to write one.
-        </p>
-      )}
-      <ul className="space-y-5">
+    <div className="max-w-2xl mx-auto py-10">
+      <h2 className="text-2xl font-bold mb-6">All Blogs</h2>
+      {loading && <p>Loading...</p>}
+      {error && <p className="text-red-600">{error}</p>}
+      <ul className="space-y-6">
         {blogs.map(blog => (
-          <li
-            key={blog.id}
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm transition hover:shadow-md"
-          >
-            <h3 className="mb-2 text-xl font-semibold tracking-tight text-slate-900">{blog.title}</h3>
-            <p className="mb-1 text-sm text-slate-700">by {blog.author.name || blog.author.email}</p>
-            <p className="mb-3 text-xs uppercase tracking-wide text-slate-500">
-              {new Date(blog.createdAt).toLocaleString()}
-            </p>
-            <div className="text-sm leading-6 text-slate-700" style={{ whiteSpace: "pre-wrap" }}>
+          <li key={blog.id} className="border p-4 rounded shadow">
+            <h3 className="text-xl font-semibold mb-2">{blog.title}</h3>
+            <p className="text-zinc-700 mb-2">by {blog.author.name || blog.author.email}</p>
+            <p className="text-zinc-500 text-sm mb-2">{new Date(blog.createdAt).toLocaleString()}</p>
+            <div className="prose" style={{ whiteSpace: "pre-wrap" }}>
               {blog.content ?? ""}
             </div>
           </li>
