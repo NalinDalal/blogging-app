@@ -1,37 +1,44 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 
 export default function BlogPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [markdownPreview, setMarkdownPreview] = useState("");
   const [message, setMessage] = useState("");
+  const [isUnauthorized, setIsUnauthorized] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setMessage("");
-    // Replace with actual user id from auth context/session
-    const userId = localStorage.getItem("userId") || "";
-    if (!userId) {
-      setMessage("You must be signed in to post a blog.");
-      return;
-    }
-    const res = await fetch("/api/blogs/post", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        authorization: userId,
-      },
-      body: JSON.stringify({ title, content }),
-    });
-    const data = await res.json();
-    if (res.ok) {
-      setMessage("Blog posted successfully!");
-      setMarkdownPreview(data.htmlContent);
-      setTitle("");
-      setContent("");
-    } else {
-      setMessage(data.error || "Error posting blog.");
+    setIsUnauthorized(false);
+    setSubmitting(true);
+
+    try {
+      const res = await fetch("/api/blogs/post", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ title, content }),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        setMessage("Blog posted successfully!");
+        setTitle("");
+        setContent("");
+      } else {
+        if (res.status === 401) {
+          setIsUnauthorized(true);
+        }
+        setMessage(data.error || "Error posting blog.");
+      }
+    } catch {
+      setMessage("Error posting blog.");
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -54,13 +61,22 @@ export default function BlogPage() {
           className="border p-2 rounded h-40"
           required
         />
-        <button type="submit" className="bg-blue-600 text-white py-2 px-4 rounded">Post Blog</button>
+        <button type="submit" className="bg-blue-600 text-white py-2 px-4 rounded" disabled={submitting}>
+          {submitting ? "Posting..." : "Post Blog"}
+        </button>
       </form>
       {message && <p className="mt-4 text-red-600">{message}</p>}
-      {markdownPreview && (
+      {isUnauthorized && (
+        <div className="mt-8">
+          <Link href="/signin" className="text-blue-600 underline">
+            Sign in to create a post.
+          </Link>
+        </div>
+      )}
+      {content && (
         <div className="mt-8">
           <h3 className="text-xl font-semibold mb-2">Preview</h3>
-          <div dangerouslySetInnerHTML={{ __html: markdownPreview }} />
+          <pre className="whitespace-pre-wrap rounded border p-4">{content}</pre>
         </div>
       )}
     </div>
