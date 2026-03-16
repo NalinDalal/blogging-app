@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 type Blog = {
   id: number;
   title: string;
-  content: string;
+  content: string | null;
   createdAt: string;
   author: {
     id: string;
@@ -24,14 +24,14 @@ export default function BlogListPage() {
       setLoading(true);
       setError("");
       try {
-        const res = await fetch("/api/blogs");
+        const res = await fetch("/api/blogs", { cache: "no-store" });
         const data = await res.json();
         if (res.ok) {
           setBlogs(data);
         } else {
           setError(data.error || "Failed to fetch blogs.");
         }
-      } catch (err) {
+      } catch {
         setError("Network error.");
       }
       setLoading(false);
@@ -50,7 +50,9 @@ export default function BlogListPage() {
             <h3 className="text-xl font-semibold mb-2">{blog.title}</h3>
             <p className="text-zinc-700 mb-2">by {blog.author.name || blog.author.email}</p>
             <p className="text-zinc-500 text-sm mb-2">{new Date(blog.createdAt).toLocaleString()}</p>
-            <div className="prose" style={{ whiteSpace: "pre-wrap" }}>{blog.content}</div>
+            <div className="prose" style={{ whiteSpace: "pre-wrap" }}>
+              {blog.content ?? ""}
+            </div>
           </li>
         ))}
       </ul>

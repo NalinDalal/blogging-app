@@ -1,42 +1,57 @@
-import { PrismaClient } from '@prisma/client';
-import { NextResponse } from 'next/server';
-import { marked } from 'marked';
+import { NextRequest, NextResponse } from "next/server";
 
-const prisma = new PrismaClient();
+import { getSessionUserFromRequest } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
-// Dummy authentication: expects 'authorization' header with user id
-function getAuthenticatedUserId(request: Request): string | null {
-  const authHeader = request.headers.get('authorization');
-  // In production, use JWT or session validation
-  return authHeader || null;
-}
+function validateBlogData(data: unknown) {
+  if (!data || typeof data !== "object") {
+    return "Invalid request body";
+  }
 
-function validateBlogData(data: any) {
-  if (!data.title || typeof data.title !== 'string' || data.title.length < 3) return 'Invalid title';
-  if (!data.content || typeof data.content !== 'string' || data.content.length < 10) return 'Invalid content';
+  const { title, content } = data as { title?: unknown; content?: unknown };
+
+  if (typeof title !== "string" || title.trim().length < 3) {
+    return "Title must be at least 3 characters";
+  }
+
+  if (typeof content !== "string" || content.trim().length < 10) {
+    return "Content must be at least 10 characters";
+  }
+
   return null;
 }
 
-export async function POST(request: Request) {
-  const userId = getAuthenticatedUserId(request);
-  if (!userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+export async function POST(request: NextRequest) {
+  try {
+    const user = getSessionUserFromRequest(request);
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const validationError = validateBlogData(body);
+
+    if (validationError) {
+      return NextResponse.json({ error: validationError }, { status: 400 });
+    }
+
+    const title = body.title.trim();
+    const content = body.content.trim();
+
+    const post = await prisma.post.create({
+      data: {
+        title,
+        content,
+        authorId: user.userId,
+        published: true,
+      },
+      include: {
+        author: { select: { id: true, email: true, name: true } },
+      },
+    });
+
+    return NextResponse.json(post, { status: 201 });
+  } catch {
+    return NextResponse.json({ error: "Failed to create blog post" }, { status: 500 });
   }
-  const body = await request.json();
-  const validationError = validateBlogData(body);
-  if (validationError) {
-    return NextResponse.json({ error: validationError }, { status: 400 });
-  }
-  // Render markdown to HTML
-  const htmlContent = marked(body.content);
-  const post = await prisma.post.create({
-    data: {
-      title: body.title,
-      content: body.content,
-      authorId: userId,
-      published: true,
-      // Optionally store htmlContent in a separate field if desired
-    },
-  });
-  return NextResponse.json({ ...post, htmlContent }, { status: 201 });
 }
